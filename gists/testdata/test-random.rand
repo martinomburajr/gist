@@ -1,0 +1,10 @@
+this is a file
+this is line 2
+/* START GOGIST
+    Author: Martin Ombura
+    Description: _fnsofld
+    END GOGIST
+*/
+
+func somefunc() {
+}
