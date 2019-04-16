@@ -1,8 +1,8 @@
 /*
-	Start gogist
+	Start gist
 		description: How to create a server in Go
 		public: false
-	end gogist
+	end gist
  */
 package testdata
 

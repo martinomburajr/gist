@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	mux2 "github.com/gorilla/mux"
-	"github.com/martinomburajr/gogist/auth"
-	"github.com/martinomburajr/gogist/config"
+	"github.com/martinomburajr/gist/auth"
+	"github.com/martinomburajr/gist/config"
 	"html/template"
 	"log"
 	"net/http"
@@ -21,6 +21,7 @@ func main() {
 	//	//check file exists
 	//}
 
+	//@todo change mux2 alias to original mux alias
 	mux := mux2.NewRouter()
 
 	authTemplate := template.Must(template.ParseFiles("public/oauth.html"))
@@ -30,6 +31,9 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.PORT), mux))
 }
 
+// LoginHandler handles the logging in of a user.
+// It will open a simple OAuth Page on a browser that will enable the OAuth flow to begin.
+// A successful login returns a valid OAuth AccessToken that is stored in the auth.Session variable.
 func LoginHandler(authTemplate *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := authTemplate.Execute(w, struct {
@@ -43,7 +47,8 @@ func LoginHandler(authTemplate *template.Template) func(w http.ResponseWriter, r
 }
 
 
-
+// baseHandler is bare test handler.
+// @todo remove baseHandler in main.go if it is expendable
 func baseHandler(w http.ResponseWriter, r *http.Request) {
 	log.Print("Hello User!")
 	err := auth.CreateOAuth2AuthorizationRequest()
@@ -51,9 +56,4 @@ func baseHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-}
-
-
-func ParseFlags() {
-
 }
