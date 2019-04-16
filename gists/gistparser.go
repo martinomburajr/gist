@@ -59,7 +59,8 @@ func (g *GistParser) GetFileBody() (*GistFileBody, error) {
 	},nil
 }
 
-//IsGistable checks to a see a certain file conforms to the GOGIST standard. If the file does not contain the "GOGIST" label
+// IsGistable checks to a see a certain file conforms to the GOGIST standard.
+// If the file does not contain the "GOGIST" label
 // in a comments section in the file. It is deemed ungistable meaning, gogist will not create a gist for the user in that regard.
 // If no error is presented, one can assume that it is a gistable file.
 func (g *GistParser) IsGistable() error {
