@@ -6,10 +6,13 @@ import (
 	"testing"
 )
 
+//.c file extensions are typically problematic when kept in the testdata folder.
 var badfilepath = "samplefile.randextensions"
 var filepatha = "testdata/test-a.a"
 var filepathb = "testdata/test-b.b"
 var filepathc = "testdata/test-c.d"
+var filepathe = "testdata/test-e.e"
+var filepathf = "testdata/test-f.f"
 var filepathgo = "testdata/test-go.go"
 var filepathrandom = "testdata/test-random.rand"
 
@@ -121,7 +124,17 @@ func TestGistParser_IsGistable(t *testing.T) {
 		fields  fields
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{"bad-file-path", fields{Filepath: badfilepath, fileContents: []byte(readFile(badfilepath))}, true },
+		{"test-a - no end to gogist", fields{Filepath: filepatha, fileContents: []byte(readFile(filepatha))}, true },
+		{"test-b - gogist", fields{Filepath: filepathb, fileContents: []byte(readFile(filepathb))}, false },
+		{"test-c - gogist", fields{Filepath: filepathc, fileContents: []byte(readFile(filepathc))}, false },
+		{"test-e - gogist in between code and file", fields{Filepath: filepathe,
+			fileContents: []byte(readFile(filepathe))}, false },
+		{"test-f - gogist missing start but contains end", fields{Filepath: filepathf,
+			fileContents: []byte(readFile(filepathf))}, true },
+		{"test-go - gogist", fields{Filepath: filepathgo, fileContents: []byte(readFile(filepathgo))}, false },
+		{"test-random - gogist", fields{Filepath: filepathrandom, fileContents: []byte(readFile(filepathrandom))},
+			false },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
