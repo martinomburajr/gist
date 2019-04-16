@@ -126,15 +126,15 @@ func TestGistParser_IsGistable(t *testing.T) {
 		wantErr bool
 	}{
 		{"bad-file-path", fields{Filepath: badfilepath, fileContents: []byte(readFile(badfilepath))}, true },
-		{"test-a - no end to gogist", fields{Filepath: filepatha, fileContents: []byte(readFile(filepatha))}, true },
-		{"test-b - gogist", fields{Filepath: filepathb, fileContents: []byte(readFile(filepathb))}, false },
-		{"test-c - gogist", fields{Filepath: filepathc, fileContents: []byte(readFile(filepathc))}, false },
-		{"test-e - gogist in between code and file", fields{Filepath: filepathe,
+		{"test-a - no end to gist", fields{Filepath: filepatha, fileContents: []byte(readFile(filepatha))}, true },
+		{"test-b - gist", fields{Filepath: filepathb, fileContents: []byte(readFile(filepathb))}, false },
+		{"test-c - gist", fields{Filepath: filepathc, fileContents: []byte(readFile(filepathc))}, false },
+		{"test-e - gist in between code and file", fields{Filepath: filepathe,
 			fileContents: []byte(readFile(filepathe))}, false },
-		{"test-f - gogist missing start but contains end", fields{Filepath: filepathf,
+		{"test-f - gist missing start but contains end", fields{Filepath: filepathf,
 			fileContents: []byte(readFile(filepathf))}, true },
-		{"test-go - gogist", fields{Filepath: filepathgo, fileContents: []byte(readFile(filepathgo))}, false },
-		{"test-random - gogist", fields{Filepath: filepathrandom, fileContents: []byte(readFile(filepathrandom))},
+		{"test-go - gist", fields{Filepath: filepathgo, fileContents: []byte(readFile(filepathgo))}, false },
+		{"test-random - gist", fields{Filepath: filepathrandom, fileContents: []byte(readFile(filepathrandom))},
 			false },
 	}
 	for _, tt := range tests {
@@ -292,18 +292,18 @@ func TestGistParser_getContent(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{name: "this should recognize the lack of end gogist", fields:fields{filepatha, nil}, args:args{gogistsectiona,
+		{name: "this should recognize the lack of end gist", fields:fields{filepatha, nil}, args:args{gogistsectiona,
 			"description"},
 			want: "", wantErr:true},
 		{name: "should correctly obtain definition contents", fields:fields{filepathb, nil}, args:args{gogistsectionb,
 			"description"},
 			want:"the following program will calculate the constant e-2 to about", wantErr:false},
 		//{name: "xxx-xxx", fields:fields{filepatha, nil}, args:args{gogistsectionc, "definition"},
-		//	want:"This gogist has no end", wantErr:false},
+		//	want:"This gist has no end", wantErr:false},
 		//{name: "xxx-xxx", fields:fields{filepatha, nil}, args:args{gogistsectiongo, "definition"},
-		//	want:"This gogist has no end", wantErr:false},
+		//	want:"This gist has no end", wantErr:false},
 		//{name: "xxx-xxx", fields:fields{filepatha, nil}, args:args{gogistsectionrand, "definition"},
-		//	want:"This gogist has no end", wantErr:false},
+		//	want:"This gist has no end", wantErr:false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/martinomburajr/gogist/auth"
+	"github.com/martinomburajr/gist/auth"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -19,7 +19,7 @@ type GistFile struct {
 	Files       []GistFileBody `json:"file"`
 }
 
-//Removes the remote Gist
+//Delete Removes the remote Gist
 func (g *GistFile) Delete(id string) (*http.Response, error) {
 	urll := fmt.Sprintf("/gists/%s", id)
 	req, err := http.NewRequest(http.MethodDelete, urll, nil)
@@ -34,11 +34,14 @@ func (g *GistFile) Delete(id string) (*http.Response, error) {
 	return resp, nil
 }
 
+//Update updates a given remote Gist
 func (g *GistFile) Update(interface{}) (*http.Response, error) {
 	panic("implement me")
 }
 
-//Given a GistFile in its basic form, create a gist on Github that takes the contents of the Files, description and whether or not it is public.
+// Create ensures that given a GistFile in its basic form,
+// create a gist on Github that takes the contents of the Files,
+// description and whether or not it is public.
 func (g *GistFile) Create() (*http.Response, error) {
 	data, err := json.Marshal(g)
 	if err != nil {
@@ -59,6 +62,7 @@ func (g *GistFile) Create() (*http.Response, error) {
 	return resp, nil
 }
 
+// Retrieve obtains a gist given the remote gist id
 //https://developer.github.com/v3/gists/#get-a-single-gist
 func  (g *GistFile) Retrieve(id string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, "/gists/"+id, nil)
@@ -90,11 +94,12 @@ func  (g *GistFile) Retrieve(id string) (*http.Response, error) {
 	return resp, nil
 }
 
-
+//GistFileBody holds the contents of a gist file as a string
 type GistFileBody struct {
 	Content string `json:"content"`
 }
 
+//GistOwner refers to a information returned  regarding the owner of a gist. See the GitHub API docs
 type GistOwner struct {
 		Login             string `json:"login"`
 		ID                int    `json:"id"`
@@ -116,6 +121,7 @@ type GistOwner struct {
 		SiteAdmin         bool   `json:"site_admin"`
 }
 
+//User refers to a user of a given GitHub account
 type User struct{
 	Login             string `json:"login"`
 	ID                int    `json:"id"`
@@ -137,7 +143,7 @@ type User struct{
 	SiteAdmin         bool   `json:"site_admin"`
 }
 
-//returned when a call to retrieve with a gist id is provided.
+//httpGistResponse returned when a call to retrieve with a gist id is provided.
 type httpGistResponse struct {
 	URL        string `json:"url"`
 	ForksURL   string `json:"forks_url"`
@@ -198,6 +204,7 @@ type httpGistResponse struct {
 	} `json:"history"`
 }
 
+//httpGistFileResponse contains information regarding the gist file response
 type httpGistFileResponse struct {
 	Filename  string `json:"filename"`
 	Type      string `json:"type"`
