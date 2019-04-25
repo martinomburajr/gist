@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-
+// GistParser is an entity responsible for the parsing of files to check if they are valid files that can be sent to
+// gist.github.com. The Filepath is a regular filepath dependent on your Operating System.
+// The fileContents contain the whole file thats been parsed.
 type GistParser struct {
 	Filepath string `json:"badfilepath"`
 	fileContents []byte
@@ -48,15 +50,33 @@ func (g *GistParser) ToGist() (*GistFile, error) {
 	}, nil
 }
 
+// GetFileBody returns the contents of a file in the GistFileBody format.
+// The GistFileBody is only the selected gistable lines
 func (g *GistParser) GetFileBody() (*GistFileBody, error) {
-	if len(g.fileContents) == 0 {
+	if len(g.fileContents) < 1 {
 		err := g.Reader()
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	lines, err := g.getGogistLines()
+	if err != nil {
+		return nil, err
+	}
+	s := stringConcat(lines)
+
 	return &GistFileBody{
-		Content: string(g.fileContents),
-	},nil
+		Content: s,
+	}, nil
+}
+
+func stringConcat(lines []string) string {
+	s := ""
+	for _, v := range lines {
+		s = s + v
+	}
+	return s
 }
 
 // IsGistable checks to a see a certain file conforms to the GOGIST standard.
@@ -153,7 +173,8 @@ func (g *GistParser) GetPublic() (bool, error) {
 	return b, nil
 }
 
-//getGogistLines returns the lines encapsulated by the 'start gogist' and the'end gogist' labels. This is where all the important gogist metadata is found.
+// getGogistLines returns the lines encapsulated by the 'start gogist' and the'end gogist' labels.
+// This is where all the important gogist metadata is found.
 func (g *GistParser) getGogistLines() ([]string, error) {
 	err := g.IsGistable()
 	if err != nil {
@@ -179,7 +200,8 @@ func (g *GistParser) getGogistLines() ([]string, error) {
 	return documentContents[startIndex:endIndex+1], nil
 }
 
-//getContent takes in the gogist section obtained after running getGogistLines, and obtaining the exact metadata section. key represents a  key in a key-value pair. e.g. author or description are valid keys
+// getContent takes in the gogist section obtained after running getGogistLines,
+// and obtaining the exact metadata section. key represents a  key in a key-value pair. e.g. author or description are valid keys
 func (g *GistParser) getContent(s []string, key string) (string, error) {
 	var location = -1
 	for i, v := range s {
@@ -213,7 +235,7 @@ func (g *GistParser) getContent(s []string, key string) (string, error) {
 //	return len(data), nil
 //}
 
-//Reads the entire file contents using ioutil. It then appends the data to the p variable for later use.
+//Reads the entire file contents using ioutil. It then appends the data to the g.fileContets variable for later use.
 func (g *GistParser) Reader()  (err error) {
 	data, err := ioutil.ReadFile(g.Filepath)
 	if err != nil {

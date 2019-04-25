@@ -90,7 +90,7 @@ func  (g *GistFile) Retrieve(id string) (*http.Response, error) {
 	return resp, nil
 }
 
-
+// GistFileBody contains the contents of the gistable lines housed in the Content variable
 type GistFileBody struct {
 	Content string `json:"content"`
 }

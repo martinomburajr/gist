@@ -85,17 +85,14 @@ func TestGistParser_ToGist(t *testing.T) {
 }
 
 func TestGistParser_GetFileBody(t *testing.T) {
-	type fields struct {
-		Filepath     string
-		fileContents []byte
-	}
 	tests := []struct {
 		name    string
-		fields  fields
+		fields  *GistParser
 		want    *GistFileBody
 		wantErr bool
 	}{
-		//{"", }
+		{"isgistable false", &GistParser{filepatha, []byte{}}, nil,  true},
+		{"isgistable false", &GistParser{filepathb, []byte{}}, &GistFileBody{""},  false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
