@@ -30,9 +30,9 @@ main() {
 	putchar('*n*n');
 }
 
-//start gogist
+//start gist
 //description: the following program will calculate the constant e-2 to about
                   4000 decimal digits, and print it 50 characters to the line in
                   groups of 5 characters.
 //author: Ken Thompson with Dennis Ritchie.
-//end gogist
+//end gist

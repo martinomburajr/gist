@@ -1,0 +1,4 @@
+Here is an example of \n
+Here is a carriage return \n
+
+Some extra spaces

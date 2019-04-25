@@ -10,7 +10,10 @@ import (
 
 
 type GistParser struct {
+	//File path refers to the file path. It is a simple string e.g. "/home/me/files"
 	Filepath string `json:"badfilepath"`
+
+	//fileContents are all the elements within the file regardless of whether they are gistable or not
 	fileContents []byte
 }
 
@@ -59,86 +62,107 @@ func (g *GistParser) GetFileBody() (*GistFileBody, error) {
 	},nil
 }
 
-// IsGistable checks to a see a certain file conforms to the GOGIST standard.
-// If the file does not contain the "GOGIST" label
-// in a comments section in the file. It is deemed ungistable meaning, gogist will not create a gist for the user in that regard.
-// If no error is presented, one can assume that it is a gistable file.
+// IsGistable checks to a see a certain file conforms to the gist standard.
+// For a file to be considered "gistable". It must contain the text "start gist" <some code> "end gist" where
+// "start gist" and "end gist"  (without quotes) legitimize the file as being gistable.
+// Also note the "start gist" and "end gist" are case insensitive.
+// These can be placed within comments, or in plain text so long as these two elements are there one after the other.
+// the <some-code> refers to code you would like to send to gist.github.
+// com gist attributes such as name can be placed within the file between the start  gist and end gist sections. e.g.
+// gist name: "some gist". See the respective methods for more.
 func (g *GistParser) IsGistable() error {
+	//perform readfile
 	err := g.Reader()
 	if err != nil {
 		return err
 	}
 
-	containsStart := bytes.Contains(bytes.ToLower(g.fileContents), bytes.ToLower([]byte("start GOGIST")))
-	if !containsStart {
-		return fmt.Errorf("is not a suitable GOGIST file. Add the following string 'start GOGIST' inside a comment section at the top of the file to mark it as a file gogist can gist ;-)")
+	lines, err := g.getgistLines()
+	containsStart := -2
+	containsEnd := -1
+	for i, v := range lines {
+		if strings.Contains(strings.ToLower(v), "start gist") {
+			containsStart = i
+		}
+		if strings.Contains(strings.ToLower(v), "end gist") {
+			containsEnd = i
+		}
 	}
 
-	containsEnd := bytes.Contains(bytes.ToLower(g.fileContents), bytes.ToLower([]byte("end GOGIST")))
-	if !containsEnd {
-		return fmt.Errorf("is not a suitable GOGIST file. Add the following string 'end GOGIST' inside a comment section at the top of the file to mark it as a file gogist can gist ;-). This should be after the start Gogist section")
+	if containsStart < 0 {
+		return fmt.Errorf("file is not gistable. no contains start found")
+	}
+
+	if containsEnd < 0 {
+		return fmt.Errorf("file is not gistable. no contains end found")
+	}
+
+	if  containsStart >= containsEnd{
+		return fmt.Errorf("start gist and end gist cannot be on the same line. " +
+			"end gist must come at least 1 line after start gist. There must be some code content in between (" +
+			"excluding metadata e.g. gist name: or gist description etc)")
 	}
 
 	return nil
 }
 
-// getAuthor returns the Author information. The author must precede the GOGIST label, and must contain all runes within the word
+// getAuthor returns the Author information. The author must precede the gist label, and must contain all runes within the word
 // "AUTHOR". This is CASE sensitive
 //
 // This is the format shown below. Email is optional. Anything after newline carriage return is considered not part of the author label
 //
-//	/** Start GOGIST
+//	/** Start gist
 //	Author: I am some author <hereismy@email.com>
 //  Description: Some awesome gist
 //  Public: true
-//  end gogist
+//  end gist
 //	*/
 //  returns I am some author <hereismy@email.com>
 //
 func (g *GistParser) GetAuthor() (string, error) {
-	lines, err := g.getGogistLines()
+	lines, err := g.getgistLines()
 	if err != nil {
 		return "", err
 	}
 	return g.getContent(lines, "author")
 }
 
-// getDescription returns the Author information. The Description must precede the GOGIST label, and must contain all runes within the word
+// getDescription returns the Author information. The Description must precede the gist label, and must contain all runes within the word
 // "Description". This is CASE sensitive
 //
 // This is the format shown below. Email is optional. Anything after newline carriage return is considered not part of the Description label so ensure description is all in a single line.
 //
-//	/** Start GOGIST
+//	/** Start gist
 //	Author: I am some author <hereismy@email.com>
 //  Description: Some awesome gist
 //  Public: true
-//  end gogist
+//  end gist
 //	*/
 //  returns Some awesome gist
 //
 func (g *GistParser) GetDescription() (string, error) {
-	lines, err := g.getGogistLines()
+	lines, err := g.getgistLines()
 	if err != nil {
 		return "", err
 	}
 	return g.getContent(lines, "description")
 }
 
-// getPublic returns the isPublic information. The Public must precede the GOGIST label, and must contain all runes within the word
+// getPublic returns the isPublic information. The Public must precede the gist label, and must contain all runes within the word
 // "AUTHOR". This is CASE insensitive
 //
 // This is the format shown below. Email is optional. Public is a boolean variable that can either be true or false. Its default value is true
 //
-//	/** Start GOGIST
+//	/** Start gist
 //	Author: I am some author <hereismy@email.com>
 //  Description: Some awesome gist
 //  Public: true
-//  end gogist
+//  end gist
 //	*/
 // returns true
 //
 func (g *GistParser) GetPublic() (bool, error) {
-	lines, err := g.getGogistLines()
+	lines, err := g.getgistLines()
 	if err != nil {
 		return false, err
 	}
@@ -153,11 +177,11 @@ func (g *GistParser) GetPublic() (bool, error) {
 	return b, nil
 }
 
-//getGogistLines returns the lines encapsulated by the 'start gogist' and the'end gogist' labels. This is where all the important gogist metadata is found.
-func (g *GistParser) getGogistLines() ([]string, error) {
+//getgistLines returns the lines encapsulated by the 'start gist' and the'end gist' labels. This is where all the important gist metadata is found.
+func (g *GistParser) getgistLines() ([]string, error) {
 	err := g.IsGistable()
 	if err != nil {
-		return nil, fmt.Errorf("could not determine if file has 'start gogist' and the'end gogist' labels -> %s", err.Error())
+		return nil, fmt.Errorf("could not determine if file has 'start gist' and the'end gist' labels -> %s", err.Error())
 	}
 
 	buffer := bytes.NewBuffer(g.fileContents)
@@ -167,10 +191,10 @@ func (g *GistParser) getGogistLines() ([]string, error) {
 	endIndex := -1
 	for i, _ := range documentContents {
 		documentContents[i] = strings.Trim(documentContents[i], " \r\n")
-		if strings.Contains(  strings.ToLower(documentContents[i]), strings.ToLower("start gogist"))  {
+		if strings.Contains(  strings.ToLower(documentContents[i]), strings.ToLower("start gist"))  {
 			startIndex = i
 		}
-		if strings.Contains(strings.ToLower(documentContents[i]), strings.ToLower("end gogist"))  {
+		if strings.Contains(strings.ToLower(documentContents[i]), strings.ToLower("end gist"))  {
 			endIndex = i
 			break
 		}
@@ -179,7 +203,7 @@ func (g *GistParser) getGogistLines() ([]string, error) {
 	return documentContents[startIndex:endIndex+1], nil
 }
 
-//getContent takes in the gogist section obtained after running getGogistLines, and obtaining the exact metadata section. key represents a  key in a key-value pair. e.g. author or description are valid keys
+//getContent takes in the gist section obtained after running getgistLines, and obtaining the exact metadata section. key represents a  key in a key-value pair. e.g. author or description are valid keys
 func (g *GistParser) getContent(s []string, key string) (string, error) {
 	var location = -1
 	for i, v := range s {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/martinomburajr/gogist/auth"
+	"github.com/martinomburajr/gist/auth"
 	"io/ioutil"
 	"net/http"
 	"time"

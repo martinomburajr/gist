@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	mux2 "github.com/gorilla/mux"
-	"github.com/martinomburajr/gogist/auth"
-	"github.com/martinomburajr/gogist/config"
+	"github.com/martinomburajr/gist/auth"
+	"github.com/martinomburajr/gist/config"
 	"html/template"
 	"log"
 	"net/http"

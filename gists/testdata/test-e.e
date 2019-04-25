@@ -1,11 +1,11 @@
-#This gogist exists within the body of the file
+#This gist exists within the body of the file
 -module(echo).
  -export([start/1,server/1,handle_messages/1]).
 
  start(Port) ->
      spawn(?MODULE,server,[Port]).
 
- #start gogist
+ #start gist
  #author martin
  server(Port) ->
      {ok, Socket} = gen_tcp:listen(Port,[{packet,line}]),
@@ -28,4 +28,4 @@
              unexpected
      end.
 
- #end gogist
+ #end gist

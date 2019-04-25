@@ -1,9 +1,9 @@
 this is a file
 this is line 2
-/* START GOGIST
+/* START gist
     Author: Martin Ombura
     Description: _fnsofld
-    END GOGIST
+    END gist
 */
 
 func somefunc() {

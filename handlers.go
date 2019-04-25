@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/martinomburajr/gogist/gists"
+	"github.com/martinomburajr/gist/gists"
 	"io"
 	"net/http"
 	"os"

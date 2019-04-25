@@ -3,7 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/martinomburajr/gogist/config"
+	"github.com/martinomburajr/gist/config"
 	"io/ioutil"
 	"log"
 	"net/http"

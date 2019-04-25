@@ -1,10 +1,10 @@
 /*
-	Start gogist
+	Start gist
 		author: Someone Special
 		description: How to create random vars in C
 		fileName: c_rand.c
 		public: true
-    end gogist
+    end gist
  */
 
 // C program to generate random numbers
