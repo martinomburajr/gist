@@ -11,7 +11,8 @@ import (
 )
 
 
-//GistFile represents an application facing Gist that a user can create. Typically populated through the use of flags. It contains the barebones for what a gist on GitHub may be.
+// GistFile represents an application facing Gist that a user can create.
+// Typically populated through the use of flags. It contains the barebones for what a gist on GitHub may be.
 // A GistFile implements a cruder interface and can perform all basic operations.
 type GistFile struct {
 	Description string         `json:"description"`
@@ -92,6 +93,7 @@ func  (g *GistFile) Retrieve(id string) (*http.Response, error) {
 
 
 type GistFileBody struct {
+	FileName string
 	Content string `json:"content"`
 }
 

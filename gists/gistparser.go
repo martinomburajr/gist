@@ -1,17 +1,51 @@
 package gists
 
 import (
-	"bytes"
 	"fmt"
+	"github.com/martinomburajr/gogist/auth"
 	"io/ioutil"
 	"strconv"
 	"strings"
 )
 
+/**
+	The metadata for the GistParser is as follows. All metadata attributes have to follow the word "gist" (
+without quotations) and must have a colon after the metadata. The following are metadata
+	1. name <-- this is the name of gist as it will appear on gist.github.com
+	2. description <-- this is the description of gist as it will appear on gist.github.com
+	3. public <-- this is marks the gist as publically accessible or not. Only boolean values work. Default is true.
+	4. author
+	5. body <-- this is the only attribute that does not need a colon to signify its information.
+Any information after this is considered part of the body to upload.
+The only other "gist" information that is valid after this one is an end gist.
+The body to upload MUST begin on a newline from the gist body declaration.
+This must also be at the bottom of your attribute list.
+
+	Here is a full example
+	//start gist
+	//gist author: Martin Ombura Jr. <martin@example.com>
+	//gist name: my gist
+	//gist description: a gist that belongs to me
+	//gist public: true
+	//gist body
+	func main() {
+		fmt.Println("My gist is awesome")
+	}
+	//end gist
+
+	Note the space between the word gist and the attribute e.g. name
+
+	You can have multiple gist sections within your application. So long as they conform to this convention.
+They will be broken up into a corresponding number of gist files shown in gist.github.com
+ */
+
+// AttributeCount is used to determine how many attributes to account for before trying to scope out what the body of
+// a gist is.
+const AttributeCount = 4
 
 type GistParser struct {
 	//File path refers to the file path. It is a simple string e.g. "/home/me/files"
-	Filepath string `json:"badfilepath"`
+	Filepath string `json:"badfile"`
 
 	//fileContents are all the elements within the file regardless of whether they are gistable or not
 	fileContents []byte
@@ -77,7 +111,7 @@ func (g *GistParser) IsGistable() error {
 		return err
 	}
 
-	lines, err := g.getgistLines()
+	lines, err := g.getGistLines()
 	containsStart := -2
 	containsEnd := -1
 	for i, v := range lines {
@@ -106,7 +140,8 @@ func (g *GistParser) IsGistable() error {
 	return nil
 }
 
-// getAuthor returns the Author information. The author must precede the gist label, and must contain all runes within the word
+// GetAuthor returns the Author information. The author must precede the gist label,
+// and must contain all runes within the word
 // "AUTHOR". This is CASE sensitive
 //
 // This is the format shown below. Email is optional. Anything after newline carriage return is considered not part of the author label
@@ -115,12 +150,13 @@ func (g *GistParser) IsGistable() error {
 //	Author: I am some author <hereismy@email.com>
 //  Description: Some awesome gist
 //  Public: true
+//  <some-code>
 //  end gist
 //	*/
 //  returns I am some author <hereismy@email.com>
 //
 func (g *GistParser) GetAuthor() (string, error) {
-	lines, err := g.getgistLines()
+	lines, err := g.getGistLines()
 	if err != nil {
 		return "", err
 	}
@@ -141,7 +177,7 @@ func (g *GistParser) GetAuthor() (string, error) {
 //  returns Some awesome gist
 //
 func (g *GistParser) GetDescription() (string, error) {
-	lines, err := g.getgistLines()
+	lines, err := g.getGistLines()
 	if err != nil {
 		return "", err
 	}
@@ -162,7 +198,7 @@ func (g *GistParser) GetDescription() (string, error) {
 // returns true
 //
 func (g *GistParser) GetPublic() (bool, error) {
-	lines, err := g.getgistLines()
+	lines, err := g.getGistLines()
 	if err != nil {
 		return false, err
 	}
@@ -177,15 +213,19 @@ func (g *GistParser) GetPublic() (bool, error) {
 	return b, nil
 }
 
-//getgistLines returns the lines encapsulated by the 'start gist' and the'end gist' labels. This is where all the important gist metadata is found.
-func (g *GistParser) getgistLines() ([]string, error) {
+// getGistLines returns the lines encapsulated by and including the 'start gist' and the'end gist' labels.
+// This is where all the important gist metadata is found.
+// Content that is not part of gist metadata is the actual content of the gist.
+func (g *GistParser) getGistLines() ([]string, error) {
 	err := g.IsGistable()
 	if err != nil {
 		return nil, fmt.Errorf("could not determine if file has 'start gist' and the'end gist' labels -> %s", err.Error())
 	}
 
-	buffer := bytes.NewBuffer(g.fileContents)
-	documentContents := strings.SplitAfter(buffer.String(), "\n")
+	documentContents, err := auth.GistSession.Utils.SplitLines(g.Filepath)
+	if err != nil {
+		return nil, err
+	}
 
 	startIndex := -1
 	endIndex := -1
@@ -203,7 +243,7 @@ func (g *GistParser) getgistLines() ([]string, error) {
 	return documentContents[startIndex:endIndex+1], nil
 }
 
-//getContent takes in the gist section obtained after running getgistLines, and obtaining the exact metadata section. key represents a  key in a key-value pair. e.g. author or description are valid keys
+//getContent takes in the gist section obtained after running getGistLines, and obtaining the exact metadata section. key represents a  key in a key-value pair. e.g. author or description are valid keys
 func (g *GistParser) getContent(s []string, key string) (string, error) {
 	var location = -1
 	for i, v := range s {

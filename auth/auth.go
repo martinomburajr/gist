@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/martinomburajr/gist/config"
+	"github.com/martinomburajr/gogist/utils"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,12 +12,12 @@ import (
 )
 
 var (
-	RedirectURI = fmt.Sprintf("http://localhost:%d/auth/github/callback", config.PORT)
-	BaseURL = "https://github.com/login/oauth/authorize"
-	ClientID = ""
+	RedirectURI  = fmt.Sprintf("http://localhost:%d/auth/github/callback", config.PORT)
+	BaseURL      = "https://github.com/login/oauth/authorize"
+	ClientID     = ""
 	ClientSecret = ""
-	AuthURL = fmt.Sprintf("%s?client_id=%s&redirect_uri=%s", BaseURL, ClientID, RedirectURI)
-	Session = SessionObj{}
+	AuthURL      = fmt.Sprintf("%s?client_id=%s&redirect_uri=%s", BaseURL, ClientID, RedirectURI)
+	GistSession  = SessionObj{}
 )
 
 //CreateOAuth2AuthorizationRequest initiates the OAuth2 process. It contacts the GitHub authorization server and requests a code (authorization key) that will later be exchanged for an AccessToken
@@ -72,7 +73,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stdout, "could not parse JSON response: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	Session.AccessToken = t.AccessToken
+	GistSession.AccessToken = t.AccessToken
 
 	w.WriteHeader(http.StatusFound)
 	w.Write([]byte("OK"))
@@ -80,8 +81,10 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 
 type SessionObj struct {
 	AccessToken string `json:"access_token"`
-	Client *http.Client
+	Client      *http.Client
+	Utils       *utils.Utils
 }
+
 type OAuthAccessResponse struct {
 	AccessToken string `json:"access_token"`
 }
